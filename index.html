@@ -1,94 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebRTC Transmisión en Vivo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Video Viewer</title>
 </head>
 <body>
-  <h1>Transmisión en Vivo WebRTC</h1>
-  
-  <h2>Tu Video:</h2>
-  <video id="localVideo" autoplay muted></video>
+    <h1>Visualización de Video en Tiempo Real</h1>
+    <video id="remoteVideo" autoplay playsinline></video>
 
-  <h2>Video Remoto:</h2>
-  <video id="remoteVideo" autoplay></video>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const socket = io("https://ba7ca419-8082-4bf6-892a-ca47d663801b-00-c4doxyx8alwp.riker.replit.dev/"); // Cambia la URL
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
+        const remoteVideo = document.getElementById("remoteVideo");
 
-    let localStream;
-    let peerConnection;
-    const configuration = {
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    };
-
-    // Iniciar el video local
-    async function startLocalStream() {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localVideo.srcObject = stream;
-      localStream = stream;
-      createPeerConnection();
-    }
-
-    // Crear una conexión WebRTC
-    function createPeerConnection() {
-      peerConnection = new RTCPeerConnection(configuration);
-      peerConnection.addEventListener('icecandidate', handleICECandidate);
-      peerConnection.addEventListener('track', handleTrack);
-
-      localStream.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStream);
-      });
-
-      // Crear una oferta de conexión
-      peerConnection.createOffer()
-        .then(offer => {
-          return peerConnection.setLocalDescription(offer);
-        })
-        .then(() => {
-          socket.emit('signal', { sdp: peerConnection.localDescription });
-        });
-    }
-
-    // Manejar candidatos ICE
-    function handleICECandidate(event) {
-      if (event.candidate) {
-        socket.emit('signal', { ice: event.candidate });
-      }
-    }
-
-    // Manejar el flujo de video remoto
-    function handleTrack(event) {
-      remoteVideo.srcObject = event.streams[0];
-    }
-
-    // Escuchar señales desde el servidor
-    socket.on('signal', (data) => {
-      if (data.sdp) {
-        peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp))
-          .then(() => {
-            if (data.sdp.type === 'offer') {
-              return peerConnection.createAnswer();
+        // Recibir frames desde el servidor
+        socket.on("video_frame", (data) => {
+            const frameBlob = atob(data.frame);
+            const arrayBuffer = new Uint8Array(frameBlob.length);
+            for (let i = 0; i < frameBlob.length; i++) {
+                arrayBuffer[i] = frameBlob.charCodeAt(i);
             }
-          })
-          .then(answer => {
-            return peerConnection.setLocalDescription(answer);
-          })
-          .then(() => {
-            socket.emit('signal', { sdp: peerConnection.localDescription });
-          });
-      }
 
-      if (data.ice) {
-        peerConnection.addIceCandidate(new RTCIceCandidate(data.ice));
-      }
-    });
+            const blob = new Blob([arrayBuffer], { type: "image/jpeg" });
+            const url = URL.createObjectURL(blob);
 
-    startLocalStream();
-  </script>
+            remoteVideo.src = url;
+        });
+    </script>
 </body>
 </html>
