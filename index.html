@@ -1,33 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Video Viewer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Stream</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #282c34;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
 </head>
 <body>
-    <h1>Visualización de Video en Tiempo Real</h1>
-    <video id="remoteVideo" autoplay playsinline></video>
+  <div>
+    <h1>Video Stream</h1>
+    <img id="video-stream" alt="Esperando video..." />
+  </div>
+  <script>
+    const SERVER_URL = "https://ba7ca419-8082-4bf6-892a-ca47d663801b-00-c4doxyx8alwp.riker.replit.dev/stream";
 
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-    <script>
-        const socket = io("https://ba7ca419-8082-4bf6-892a-ca47d663801b-00-c4doxyx8alwp.riker.replit.dev/"); // Cambia la URL
+    const socket = io(SERVER_URL, { path: "/socket.io" });
 
-        const remoteVideo = document.getElementById("remoteVideo");
+    socket.on("connect", () => {
+      console.log("Conectado al servidor.");
+    });
 
-        // Recibir frames desde el servidor
-        socket.on("video_frame", (data) => {
-            const frameBlob = atob(data.frame);
-            const arrayBuffer = new Uint8Array(frameBlob.length);
-            for (let i = 0; i < frameBlob.length; i++) {
-                arrayBuffer[i] = frameBlob.charCodeAt(i);
-            }
+    socket.on("video_frame", (data) => {
+      const imgElement = document.getElementById("video-stream");
+      imgElement.src = `data:image/jpeg;base64,${data.frame}`;
+    });
 
-            const blob = new Blob([arrayBuffer], { type: "image/jpeg" });
-            const url = URL.createObjectURL(blob);
-
-            remoteVideo.src = url;
-        });
-    </script>
+    socket.on("disconnect", () => {
+      console.log("Desconectado del servidor.");
+    });
+  </script>
 </body>
 </html>
