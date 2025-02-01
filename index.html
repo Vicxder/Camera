@@ -16,7 +16,7 @@
     </div>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
-        const socket = io("http://52.86.7.176:3000");
+        const socket = io("https://streamrccars.duckdns.org");
         const peerConnection = new RTCPeerConnection();
 
         peerConnection.ontrack = (event) => {
