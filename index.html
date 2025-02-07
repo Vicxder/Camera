@@ -7,15 +7,23 @@
 </head>
 <body>
     <h1>Transmisión en vivo</h1>
-    <img id="videoStream" width="640" height="480"/>
+    <img id="videoStream" width="640" height="480" alt="Esperando video..."/>
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
-        const socket = io('https://streamrccars.duckdns.org/'); // Reemplaza con la URL correcta
-        const videoElement = document.getElementById('videoStream');
+        const socket = io('wss://streamrccars.duckdns.org/', { transports: ["websocket"] }); 
+
+        socket.on('connect', () => {
+            console.log("✅ Conectado al servidor WebSocket");
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error("❌ Error de conexión:", error);
+        });
 
         socket.on('video_frame', (data) => {
-            videoElement.src = 'data:image/jpeg;base64,' + data;
+            console.log("📷 Recibiendo frame...");
+            document.getElementById('videoStream').src = 'data:image/jpeg;base64,' + data;
         });
     </script>
 </body>
