@@ -1,29 +1,31 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Stream</title>
-</head>
-<body>
-    <h1>Transmisión en vivo</h1>
-    <img id="videoStream" width="640" height="480" alt="Esperando video..."/>
+<!          Doctype html>
+<html lang = "es">
+<Evista>
+    <meta charset = "utf-8">
+    <Meta name = "Viewport" content = "width = Sexitivo-width, inicio-escala = 1.0">
+    <title> WebRTC Stream </title>
+</blo>
+<Body>
+    <h1> transmisio en vivo </h1>
+    <img id = "videostream" width = "640" height = "480" alt = "Video de Esperando ..."/>
 
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src = "https://cdn.socket.io/4.0.1/socket.io.min.js"> </script>
     <script>
-        const socket = io('wss://streamrccars.duckdns.org/', { transports: ["websocket"] }); 
+       const Socket = io ('wss: //54.163.47.109/');
 
-        socket.on('connect', () => {
-            console.log("✅ Conectado al servidor WebSocket");
+       // const Socket = io ('wss: //streamrccars.duckdns.org/', {transports: ["WebSocket"]}); 
+
+        Socket.on ('Connect', () => {
+            console.log ("✅ CONECTADO AL SERVIDOR WebSocket");
         });
 
-        socket.on('connect_error', (error) => {
-            console.error("❌ Error de conexión:", error);
+        Socket.on ('Connect_error', (error) => {
+            console.error ("❌ Error de Conexión:", error);
         });
 
-        socket.on('video_frame', (data) => {
-            console.log("📷 Recibiendo frame...");
-            document.getElementById('videoStream').src = 'data:image/jpeg;base64,' + data;
+        Socket.on ('video_frame', (data) => {
+            console.log ("📷 Marco Recibieto ...");
+            document.getElementById ('VideoStream').          Src = 'datos: imagen/jpeg;          Base64, ' + datos;
         });
     </script>
 </body>
