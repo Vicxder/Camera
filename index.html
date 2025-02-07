@@ -7,28 +7,29 @@
 </head>
 <body>
     <h1>Transmisión en vivo</h1>
-    <img id="videoStream" width="640" height="480" alt="Esperando video..." />
+    <video id="videoStream" width="640" height="480" autoplay></video>
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
-        // Conectar al servidor WebSocket
         const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
 
-        // Evento de conexión exitosa
         socket.on('connect', () => {
             console.log("✅ CONECTADO AL SERVIDOR WebSocket");
         });
 
-        // Evento de error de conexión
         socket.on('connect_error', (error) => {
             console.error("❌ Error de Conexión:", error);
         });
 
-        // Evento de recepción de un frame de video
         socket.on('video_frame', (data) => {
             console.log("📷 Marco Recibido...");
-            // Mostrar el frame como imagen en el <img>
-            document.getElementById('videoStream').src = 'data:image/jpeg;base64,' + data;
+
+            // Convertir el frame base64 a un Blob y mostrarlo en el video
+            const videoElement = document.getElementById('videoStream');
+            const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+            const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+            const url = URL.createObjectURL(blob);
+            videoElement.src = url;
         });
     </script>
 </body>
