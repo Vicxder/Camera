@@ -11,9 +11,9 @@
 
     <script src = "https://cdn.socket.io/4.0.1/socket.io.min.js"> </script>
     <script>
-       const Socket = io ('wss: //54.163.47.109/');
+      
 
-       // const Socket = io ('wss: //streamrccars.duckdns.org/', {transports: ["WebSocket"]}); 
+       const Socket = io ('wss: //streamrccars.duckdns.org/', {transports: ["WebSocket"]}); 
 
         Socket.on ('Connect', () => {
             console.log ("✅ CONECTADO AL SERVIDOR WebSocket");
