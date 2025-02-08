@@ -36,4 +36,76 @@
     });
 
     socket.on('connect_error', (error) => {
-        console.error("❌ Error de
+        console.error("❌ Error de Conexión:", error);
+    });
+
+    socket.on('video_frame', (data) => {
+        const videoElement = document.getElementById('videoStream');
+
+        // Convertir base64 a Blob
+        const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+        const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+        const url = URL.createObjectURL(blob);
+        
+        // Asignar la imagen al src del img
+        videoElement.src = url;
+    });
+
+    // Configuración MQTT
+    const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";  // Broker público con WebSocket
+    const MQTT_TOPIC = "streamrccars/control";
+
+    const mqttClient = mqtt.connect(MQTT_BROKER);
+
+    mqttClient.on('connect', () => {
+        console.log("✅ Conectado al broker MQTT");
+    });
+
+    mqttClient.on('error', (error) => {
+        console.error("❌ Error de conexión MQTT:", error);
+    });
+
+    // Manejo de botones
+    document.getElementById('forward').addEventListener('click', () => {
+        mqttClient.publish(MQTT_TOPIC, 'forward');
+    });
+
+    document.getElementById('backward').addEventListener('click', () => {
+        mqttClient.publish(MQTT_TOPIC, 'backward');
+    });
+
+    document.getElementById('left').addEventListener('click', () => {
+        mqttClient.publish(MQTT_TOPIC, 'left');
+    });
+
+    document.getElementById('right').addEventListener('click', () => {
+        mqttClient.publish(MQTT_TOPIC, 'right');
+    });
+
+    document.getElementById('stop').addEventListener('click', () => {
+        mqttClient.publish(MQTT_TOPIC, 'stop');
+    });
+
+    // Manejo de teclado
+    document.addEventListener('keydown', (event) => {
+        switch (event.key) {
+            case 'ArrowUp':
+                mqttClient.publish(MQTT_TOPIC, 'forward');
+                break;
+            case 'ArrowDown':
+                mqttClient.publish(MQTT_TOPIC, 'backward');
+                break;
+            case 'ArrowLeft':
+                mqttClient.publish(MQTT_TOPIC, 'left');
+                break;
+            case 'ArrowRight':
+                mqttClient.publish(MQTT_TOPIC, 'right');
+                break;
+            case ' ':
+                mqttClient.publish(MQTT_TOPIC, 'stop');
+                break;
+        }
+    });
+    </script>
+</body>
+</html>
