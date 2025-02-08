@@ -3,106 +3,54 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Stream</title>
-    <style>
-        #controls {
-            margin-top: 20px;
-        }
-        button {
-            padding: 10px;
-            margin: 5px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Transmisión en vivo</h1>
-    <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
-    <div id="controls">
-        <button id="forward">Adelante</button>
-        <button id="backward">Atrás</button>
-        <button id="left">Izquierda</button>
-        <button id="right">Derecha</button>
-        <button id="stop">Detener</button>
-    </div>
-
+    <title>WebRTC Stream + Control</title>
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <h1>🚗 Control del Auto RC</h1>
+    
+    <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
+
+    <br>
+    <button onclick="sendCommand('forward')">⬆️ Adelante</button>
+    <button onclick="sendCommand('left')">⬅️ Izquierda</button>
+    <button onclick="sendCommand('right')">➡️ Derecha</button>
+    <button onclick="sendCommand('backward')">⬇️ Atrás</button>
+    <button onclick="sendCommand('stop')">⏹️ Detener</button>
+
     <script>
+        // 🎥 Conectar WebRTC (Socket.IO) para recibir video
         const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
-
-        socket.on('connect', () => {
-            console.log("✅ CONECTADO AL SERVIDOR WebSocket");
-        });
-
-        socket.on('connect_error', (error) => {
-            console.error("❌ Error de Conexión:", error);
-        });
 
         socket.on('video_frame', (data) => {
             const videoElement = document.getElementById('videoStream');
-
-            // Convertir base64 a Blob
             const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
             const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
-            const url = URL.createObjectURL(blob);
-            
-            // Asignar la imagen al src del img
-            videoElement.src = url;
+            videoElement.src = URL.createObjectURL(blob);
         });
 
-        // Configuración MQTT
-        const client = mqtt.connect('wss://streamrccars.duckdns.org:8883', {
-            username: 'tu_usuario',  // Cambia esto
-            password: 'tu_contraseña'  // Cambia esto
-        });
+        // 📡 Conectar MQTT para enviar comandos
+        const MQTT_BROKER = "wss://test.mosquitto.org:8081";
+        const MQTT_TOPIC = "rc_car/control";
+        const client = mqtt.connect(MQTT_BROKER);
 
-        client.on('connect', () => {
-            console.log("✅ CONECTADO AL BROKER MQTT");
-        });
+        function sendCommand(command) {
+            console.log("Enviando comando:", command);
+            client.publish(MQTT_TOPIC, command);
+        }
 
-        client.on('error', (error) => {
-            console.error("❌ Error de Conexión MQTT:", error);
-        });
-
-        // Manejo de botones
-        document.getElementById('forward').addEventListener('click', () => {
-            client.publish('rccar/control', 'forward');
-        });
-
-        document.getElementById('backward').addEventListener('click', () => {
-            client.publish('rccar/control', 'backward');
-        });
-
-        document.getElementById('left').addEventListener('click', () => {
-            client.publish('rccar/control', 'left');
-        });
-
-        document.getElementById('right').addEventListener('click', () => {
-            client.publish('rccar/control', 'right');
-        });
-
-        document.getElementById('stop').addEventListener('click', () => {
-            client.publish('rccar/control', 'stop');
-        });
-
-        // Manejo de teclado
-        document.addEventListener('keydown', (event) => {
-            switch (event.key) {
-                case 'ArrowUp':
-                    client.publish('rccar/control', 'forward');
-                    break;
-                case 'ArrowDown':
-                    client.publish('rccar/control', 'backward');
-                    break;
-                case 'ArrowLeft':
-                    client.publish('rccar/control', 'left');
-                    break;
-                case 'ArrowRight':
-                    client.publish('rccar/control', 'right');
-                    break;
-                case ' ':
-                    client.publish('rccar/control', 'stop');
-                    break;
+        // 🎮 Control con teclado
+        document.addEventListener("keydown", (event) => {
+            const keyMap = {
+                "ArrowUp": "forward",
+                "ArrowLeft": "left",
+                "ArrowRight": "right",
+                "ArrowDown": "backward",
+                "Space": "stop"
+            };
+            if (keyMap[event.code]) {
+                sendCommand(keyMap[event.code]);
             }
         });
     </script>
