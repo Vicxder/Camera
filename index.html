@@ -3,85 +3,30 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Stream</title>
+    <title>Control RC</title>
 </head>
 <body>
-    <h1>Transmisión en vivo</h1>
-    <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
-
-    <!-- Conectar al servidor WebSocket -->
+    <h1>Control del Auto</h1>
+    <div>
+        <button onclick="sendCommand('forward')">Adelante</button>
+        <button onclick="sendCommand('left')">Izquierda</button>
+        <button onclick="sendCommand('right')">Derecha</button>
+        <button onclick="sendCommand('backward')">Atrás</button>
+    </div>
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
-
     <script>
-    const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
-    
-    // Conectar al broker MQTT
-    const client = mqtt.connect('wss://streamrccars.duckdns.org:9001'); // Usar WebSocket para MQTT si es necesario
+        const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
 
-    client.on('connect', () => {
-        console.log('Conectado al broker MQTT');
-    });
-
-    // Función para enviar comando MQTT
-    function sendControlCommand(command) {
-        client.publish('rccar/control', command);
-    }
-
-    // Añadir eventos para botones
-    document.getElementById('up').addEventListener('click', () => {
-        sendControlCommand('forward');
-    });
-
-    document.getElementById('down').addEventListener('click', () => {
-        sendControlCommand('backward');
-    });
-
-    document.getElementById('left').addEventListener('click', () => {
-        sendControlCommand('left');
-    });
-
-    document.getElementById('right').addEventListener('click', () => {
-        sendControlCommand('right');
-    });
-
-    // Control con teclado
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowUp') {
-            sendControlCommand('forward');
-        } else if (e.key === 'ArrowDown') {
-            sendControlCommand('backward');
-        } else if (e.key === 'ArrowLeft') {
-            sendControlCommand('left');
-        } else if (e.key === 'ArrowRight') {
-            sendControlCommand('right');
+        function sendCommand(command) {
+            socket.emit('car_command', command);
         }
-    });
 
-    socket.on('connect', () => {
-        console.log("✅ CONECTADO AL SERVIDOR WebSocket");
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error("❌ Error de Conexión:", error);
-    });
-
-    socket.on('video_frame', (data) => {
-        const videoElement = document.getElementById('videoStream');
-
-        // Convertir base64 a Blob
-        const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
-        const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
-        const url = URL.createObjectURL(blob);
-        
-        // Asignar la imagen al src del img
-        videoElement.src = url;
-    });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp') sendCommand('forward');
+            if (event.key === 'ArrowLeft') sendCommand('left');
+            if (event.key === 'ArrowRight') sendCommand('right');
+            if (event.key === 'ArrowDown') sendCommand('backward');
+        });
     </script>
-
-    <button id="up">↑</button>
-    <button id="down">↓</button>
-    <button id="left">←</button>
-    <button id="right">→</button>
 </body>
 </html>
