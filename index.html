@@ -9,9 +9,54 @@
     <h1>Transmisión en vivo</h1>
     <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
 
+    <!-- Conectar al servidor WebSocket -->
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+
     <script>
     const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
+    
+    // Conectar al broker MQTT
+    const client = mqtt.connect('wss://streamrccars.duckdns.org:9001'); // Usar WebSocket para MQTT si es necesario
+
+    client.on('connect', () => {
+        console.log('Conectado al broker MQTT');
+    });
+
+    // Función para enviar comando MQTT
+    function sendControlCommand(command) {
+        client.publish('rccar/control', command);
+    }
+
+    // Añadir eventos para botones
+    document.getElementById('up').addEventListener('click', () => {
+        sendControlCommand('forward');
+    });
+
+    document.getElementById('down').addEventListener('click', () => {
+        sendControlCommand('backward');
+    });
+
+    document.getElementById('left').addEventListener('click', () => {
+        sendControlCommand('left');
+    });
+
+    document.getElementById('right').addEventListener('click', () => {
+        sendControlCommand('right');
+    });
+
+    // Control con teclado
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') {
+            sendControlCommand('forward');
+        } else if (e.key === 'ArrowDown') {
+            sendControlCommand('backward');
+        } else if (e.key === 'ArrowLeft') {
+            sendControlCommand('left');
+        } else if (e.key === 'ArrowRight') {
+            sendControlCommand('right');
+        }
+    });
 
     socket.on('connect', () => {
         console.log("✅ CONECTADO AL SERVIDOR WebSocket");
@@ -33,5 +78,10 @@
         videoElement.src = url;
     });
     </script>
+
+    <button id="up">↑</button>
+    <button id="down">↓</button>
+    <button id="left">←</button>
+    <button id="right">→</button>
 </body>
 </html>
