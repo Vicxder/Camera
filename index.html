@@ -3,29 +3,86 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control RC</title>
+    <title>Control de Auto a Distancia</title>
 </head>
 <body>
-    <h1>Control del Auto</h1>
+    <h1>Transmisión en Vivo y Control del Auto</h1>
+    <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
+
+    <!-- Botones de control -->
     <div>
-        <button onclick="sendCommand('forward')">Adelante</button>
-        <button onclick="sendCommand('left')">Izquierda</button>
-        <button onclick="sendCommand('right')">Derecha</button>
-        <button onclick="sendCommand('backward')">Atrás</button>
+        <button id="moveForward">Avanzar</button>
+        <button id="moveBackward">Retroceder</button>
+        <button id="turnLeft">Girar Izquierda</button>
+        <button id="turnRight">Girar Derecha</button>
+        <button id="stop">Detener</button>
     </div>
+
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqtt.min.js"></script>
+
     <script>
+        // Configuración de MQTT
+        const client = mqtt.connect('mqtt://streamrccars.duckdns.org'); // Dirección del broker MQTT
+
+        client.on('connect', () => {
+            console.log("✅ Conectado al broker MQTT");
+        });
+
+        // Enviar comandos al auto cuando se presionan los botones
+        document.getElementById('moveForward').addEventListener('click', () => {
+            client.publish('control/auto', 'move_forward');
+        });
+
+        document.getElementById('moveBackward').addEventListener('click', () => {
+            client.publish('control/auto', 'move_backward');
+        });
+
+        document.getElementById('turnLeft').addEventListener('click', () => {
+            client.publish('control/auto', 'turn_left');
+        });
+
+        document.getElementById('turnRight').addEventListener('click', () => {
+            client.publish('control/auto', 'turn_right');
+        });
+
+        document.getElementById('stop').addEventListener('click', () => {
+            client.publish('control/auto', 'stop');
+        });
+
+        // Control del auto usando el teclado
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'w') {
+                client.publish('control/auto', 'move_forward');
+            }
+            if (event.key === 's') {
+                client.publish('control/auto', 'move_backward');
+            }
+            if (event.key === 'a') {
+                client.publish('control/auto', 'turn_left');
+            }
+            if (event.key === 'd') {
+                client.publish('control/auto', 'turn_right');
+            }
+            if (event.key === ' ') { // La barra espaciadora para detener el auto
+                client.publish('control/auto', 'stop');
+            }
+        });
+
+        // Recibir y mostrar la transmisión de video WebRTC
+        const videoElement = document.getElementById('videoStream');
         const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
 
-        function sendCommand(command) {
-            socket.emit('car_command', command);
-        }
+        socket.on('connect', () => {
+            console.log("✅ Conectado al servidor WebRTC");
+        });
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'ArrowUp') sendCommand('forward');
-            if (event.key === 'ArrowLeft') sendCommand('left');
-            if (event.key === 'ArrowRight') sendCommand('right');
-            if (event.key === 'ArrowDown') sendCommand('backward');
+        socket.on('video_frame', (data) => {
+            // Convertir base64 a Blob
+            const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+            const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+            const url = URL.createObjectURL(blob);
+            videoElement.src = url;
         });
     </script>
 </body>
