@@ -22,13 +22,16 @@
     });
 
     socket.on('video_frame', (data) => {
+        console.log("📷 Marco Recibido...");
         const videoElement = document.getElementById('videoStream');
+
+        // Convertir base64 a Blob
         const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
         const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
         const url = URL.createObjectURL(blob);
-        requestAnimationFrame(() => {
-            videoElement.src = url;
-        });
+        
+        // Asignar la imagen al src del img
+        videoElement.src = url;
     });
     </script>
 </body>
