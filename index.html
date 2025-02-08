@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Transmisión en vivo</h1>
-    <img id="videoStream" width="640" height="480" alt="Transmisión en vivo">
+    <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
@@ -22,7 +22,6 @@
     });
 
     socket.on('video_frame', (data) => {
-        console.log("📷 Marco Recibido...");
         const videoElement = document.getElementById('videoStream');
 
         // Convertir base64 a Blob
