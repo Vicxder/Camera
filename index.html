@@ -3,56 +3,37 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Stream + Control</title>
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <title>WebRTC Stream</title>
+    <style>
+        #controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>🚗 Control del Auto RC</h1>
-    
+    <h1>Transmisión en vivo</h1>
     <img id="videoStream" width="320" height="240" alt="Transmisión en vivo">
 
-    <br>
-    <button onclick="sendCommand('forward')">⬆️ Adelante</button>
-    <button onclick="sendCommand('left')">⬅️ Izquierda</button>
-    <button onclick="sendCommand('right')">➡️ Derecha</button>
-    <button onclick="sendCommand('backward')">⬇️ Atrás</button>
-    <button onclick="sendCommand('stop')">⏹️ Detener</button>
+    <div id="controls">
+        <button id="forward">Adelante</button>
+        <button id="backward">Atrás</button>
+        <button id="left">Izquierda</button>
+        <button id="right">Derecha</button>
+        <button id="stop">Detener</button>
+    </div>
 
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        // 🎥 Conectar WebRTC (Socket.IO) para recibir video
-        const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
+    const socket = io('wss://streamrccars.duckdns.org/', { transports: ['websocket'] });
 
-        socket.on('video_frame', (data) => {
-            const videoElement = document.getElementById('videoStream');
-            const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
-            const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
-            videoElement.src = URL.createObjectURL(blob);
-        });
+    socket.on('connect', () => {
+        console.log("✅ CONECTADO AL SERVIDOR WebSocket");
+    });
 
-        // 📡 Conectar MQTT para enviar comandos
-        const MQTT_BROKER = "wss://test.mosquitto.org:8081";
-        const MQTT_TOPIC = "rc_car/control";
-        const client = mqtt.connect(MQTT_BROKER);
-
-        function sendCommand(command) {
-            console.log("Enviando comando:", command);
-            client.publish(MQTT_TOPIC, command);
-        }
-
-        // 🎮 Control con teclado
-        document.addEventListener("keydown", (event) => {
-            const keyMap = {
-                "ArrowUp": "forward",
-                "ArrowLeft": "left",
-                "ArrowRight": "right",
-                "ArrowDown": "backward",
-                "Space": "stop"
-            };
-            if (keyMap[event.code]) {
-                sendCommand(keyMap[event.code]);
-            }
-        });
-    </script>
-</body>
-</html>
+    socket.on('connect_error', (error) => {
+        console.error("❌ Error de
