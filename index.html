@@ -52,7 +52,9 @@
     });
 
     // Configuración MQTT
-    const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";  // Broker público con WebSocket
+    const MQTT_BROKER = "wss://test.mosquitto.org:8081/mqtt";
+
+    //const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";  // Broker público con WebSocket
     const MQTT_TOPIC = "streamrccars/control";
 
     const mqttClient = mqtt.connect(MQTT_BROKER);
